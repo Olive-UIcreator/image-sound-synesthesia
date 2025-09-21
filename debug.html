@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-Sound-Synesthesia - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .debug-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover { background: #0056b3; }
+        #debug-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image-Sound-Synesthesia - Debug Mode</h1>
+    
+    <div class="debug-panel">
+        <h3>系統狀態檢查</h3>
+        <div id="status-checks"></div>
+        <button onclick="runDiagnostics()">運行診斷</button>
+        <button onclick="clearLog()">清除日誌</button>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>調試日誌</h3>
+        <div id="debug-log"></div>
+    </div>
+    
+    <div class="debug-panel">
+        <h3>快速測試</h3>
+        <input type="file" id="test-image" accept="image/*">
+        <button onclick="testImageUpload()">測試圖片上傳</button>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="src/lib/imageProcessor.js"></script>
+    <script src="src/lib/audioEngine.js"></script>
+    <script src="src/lib/hsvMapper.js"></script>
+    <script src="src/components/InteractiveCanvas.js"></script>
+    <script src="src/main.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logEntry.style.color = type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#0c5460';
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+        }
+        
+        function addStatus(message, type) {
+            const statusDiv = document.getElementById('status-checks');
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            statusDiv.appendChild(status);
+        }
+        
+        function runDiagnostics() {
+            document.getElementById('status-checks').innerHTML = '';
+            log('開始系統診斷...');
+            
+            // 檢查外部庫
+            if (typeof p5 !== 'undefined') {
+                addStatus('✅ p5.js 已載入', 'success');
+                log('p5.js 版本: ' + p5.VERSION);
+            } else {
+                addStatus('❌ p5.js 未載入', 'error');
+                log('p5.js 載入失敗', 'error');
+            }
+            
+            if (typeof Tone !== 'undefined') {
+                addStatus('✅ Tone.js 已載入', 'success');
+                log('Tone.js 已載入');
+            } else {
+                addStatus('❌ Tone.js 未載入', 'error');
+                log('Tone.js 載入失敗', 'error');
+            }
+            
+            // 檢查應用程式類別
+            if (typeof ImageProcessor !== 'undefined') {
+                addStatus('✅ ImageProcessor 類別已載入', 'success');
+            } else {
+                addStatus('❌ ImageProcessor 類別未載入', 'error');
+            }
+            
+            if (typeof AudioEngine !== 'undefined') {
+                addStatus('✅ AudioEngine 類別已載入', 'success');
+            } else {
+                addStatus('❌ AudioEngine 類別未載入', 'error');
+            }
+            
+            if (typeof HsvMapper !== 'undefined') {
+                addStatus('✅ HsvMapper 類別已載入', 'success');
+            } else {
+                addStatus('❌ HsvMapper 類別未載入', 'error');
+            }
+            
+            if (typeof InteractiveCanvas !== 'undefined') {
+                addStatus('✅ InteractiveCanvas 類別已載入', 'success');
+            } else {
+                addStatus('❌ InteractiveCanvas 類別未載入', 'error');
+            }
+            
+            // 檢查應用程式實例
+            if (typeof app !== 'undefined' && app) {
+                addStatus('✅ 應用程式實例已建立', 'success');
+                log('應用程式狀態: ' + JSON.stringify(app.getState()));
+            } else {
+                addStatus('❌ 應用程式實例未建立', 'error');
+            }
+            
+            log('診斷完成');
+        }
+        
+        async function testImageUpload() {
+            const fileInput = document.getElementById('test-image');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log('請先選擇圖片檔案', 'error');
+                return;
+            }
+            
+            log(`測試圖片上傳: ${file.name} (${file.size} bytes)`);
+            
+            try {
+                // 創建測試用的 ImageProcessor
+                const processor = new ImageProcessor();
+                const canvas = document.createElement('canvas');
+                processor.init(canvas);
+                
+                log('開始載入圖片...');
+                await processor.loadImage(file);
+                
+                log('圖片載入成功');
+                log(`像素數據: ${processor.getPixelData().length} 行`);
+                log(`圖片尺寸: ${processor.getDimensions().width}x${processor.getDimensions().height}`);
+                
+                document.getElementById('test-results').innerHTML = 
+                    `<div class="status success">✅ 圖片上傳測試成功</div>`;
+                
+            } catch (error) {
+                log(`圖片上傳測試失敗: ${error.message}`, 'error');
+                document.getElementById('test-results').innerHTML = 
+                    `<div class="status error">❌ 圖片上傳測試失敗: ${error.message}</div>`;
+            }
+        }
+        
+        // 頁面載入完成後自動運行診斷
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostics, 1000);
+        });
+        
+        // 攔截 console.log 來顯示在調試面板中
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+    </script>
+</body>
+</html>

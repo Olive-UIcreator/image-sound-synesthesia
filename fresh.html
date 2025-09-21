@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-Sound-Synesthesia - Fresh</title>
+    <link rel="stylesheet" href="src/assets/styles/main.css?v=2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <h1>Image-Sound-Synesthesia</h1>
+            <p class="subtitle">Transform images into interactive soundscapes</p>
+        </header>
+        
+        <main class="app-main">
+            <div class="control-panel">
+                <div class="upload-section">
+                    <label for="image-upload" class="upload-label">
+                        <span class="upload-icon">📁</span>
+                        Upload Image
+                    </label>
+                    <input type="file" id="image-upload" accept="image/*" hidden>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="pixel-size">Pixel Size:</label>
+                        <input type="range" id="pixel-size" min="30" max="200" value="50">
+                        <span id="pixel-size-value">50</span>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="mode-select">Mode:</label>
+                        <select id="mode-select">
+                            <option value="single">Single Point Mode</option>
+                            <option value="scan">Scan Mode</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button id="play-button" class="play-button" disabled>
+                            <span class="play-icon">▶️</span>
+                            Start Playing
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <div id="p5-canvas"></div>
+                <div class="canvas-overlay" id="canvas-overlay">
+                    <p>Upload an image to begin</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="app-footer">
+            <div class="audio-info">
+                <div class="info-item">
+                    <span class="label">Hue → Pitch:</span>
+                    <span id="hue-info">0°</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Saturation → Timbre:</span>
+                    <span id="saturation-info">0%</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Brightness → Volume:</span>
+                    <span id="brightness-info">0%</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="src/lib/imageProcessor.js?v=2"></script>
+    <script src="src/lib/audioEngine.js?v=2"></script>
+    <script src="src/lib/hsvMapper.js?v=2"></script>
+    <script src="src/components/InteractiveCanvas.js?v=2"></script>
+    <script src="src/main.js?v=2"></script>
+    
+    <script>
+        // 強制清除緩存
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        
+        // 添加調試信息
+        console.log('=== Fresh Page Load ===');
+        console.log('Timestamp:', new Date().toISOString());
+        console.log('p5 available:', typeof p5 !== 'undefined');
+        console.log('Tone available:', typeof Tone !== 'undefined');
+        
+        // 等待所有腳本載入
+        window.addEventListener('load', () => {
+            console.log('=== All Scripts Loaded ===');
+            console.log('ImageProcessor:', typeof ImageProcessor !== 'undefined');
+            console.log('AudioEngine:', typeof AudioEngine !== 'undefined');
+            console.log('HsvMapper:', typeof HsvMapper !== 'undefined');
+            console.log('InteractiveCanvas:', typeof InteractiveCanvas !== 'undefined');
+            console.log('App instance:', typeof app !== 'undefined');
+            
+            // 檢查容器是否存在
+            const canvasContainer = document.getElementById('p5-canvas');
+            console.log('Canvas container:', canvasContainer);
+            
+            if (canvasContainer) {
+                console.log('Container dimensions:', canvasContainer.offsetWidth, 'x', canvasContainer.offsetHeight);
+            }
+        });
+    </script>
+</body>
+</html>
