@@ -58,31 +58,43 @@ class ImageProcessor {
     processImage() {
         if (!this.originalImage || !this.canvas) return;
         
-        // Calculate canvas dimensions maintaining aspect ratio
-        const maxWidth = 600;
-        const maxHeight = 500; // 增加高度以避免裁切
-        const aspectRatio = this.originalImage.width / this.originalImage.height;
-        
-        let canvasWidth, canvasHeight;
-        if (aspectRatio > maxWidth / maxHeight) {
-            // 橫向圖片：以寬度為準
-            canvasWidth = maxWidth;
-            canvasHeight = maxWidth / aspectRatio;
-        } else {
-            // 直向圖片：以高度為準
-            canvasHeight = maxHeight;
-            canvasWidth = maxHeight * aspectRatio;
-        }
-        
-        // 確保尺寸是整數
-        canvasWidth = Math.floor(canvasWidth);
-        canvasHeight = Math.floor(canvasHeight);
+        // 固定畫布尺寸
+        const canvasWidth = 600;
+        const canvasHeight = 500;
         
         this.canvas.width = canvasWidth;
         this.canvas.height = canvasHeight;
         
-        // Draw original image scaled to canvas
-        this.ctx.drawImage(this.originalImage, 0, 0, canvasWidth, canvasHeight);
+        // 計算圖片縮放尺寸，保持寬高比
+        const aspectRatio = this.originalImage.width / this.originalImage.height;
+        let imageWidth, imageHeight;
+        
+        if (aspectRatio > canvasWidth / canvasHeight) {
+            // 橫向圖片：以寬度為準
+            imageWidth = canvasWidth;
+            imageHeight = canvasWidth / aspectRatio;
+        } else {
+            // 直向圖片：以高度為準
+            imageHeight = canvasHeight;
+            imageWidth = canvasHeight * aspectRatio;
+        }
+        
+        // 計算居中位置
+        const offsetX = (canvasWidth - imageWidth) / 2;
+        const offsetY = (canvasHeight - imageHeight) / 2;
+        
+        // 清除畫布並設置白色背景
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        
+        // 繪製圖片到居中位置
+        this.ctx.drawImage(this.originalImage, offsetX, offsetY, imageWidth, imageHeight);
+        
+        // 儲存圖片實際尺寸和位置
+        this.imageWidth = imageWidth;
+        this.imageHeight = imageHeight;
+        this.imageOffsetX = offsetX;
+        this.imageOffsetY = offsetY;
         
         // Apply pixelation effect
         this.applyPixelation();
@@ -90,7 +102,7 @@ class ImageProcessor {
         // Extract pixel data
         this.extractPixelData();
         
-        console.log(`Image processed: ${canvasWidth}x${canvasHeight}, aspect ratio: ${aspectRatio.toFixed(2)}`);
+        console.log(`Image processed: ${imageWidth}x${imageHeight}, offset: (${offsetX}, ${offsetY}), aspect ratio: ${aspectRatio.toFixed(2)}`);
     }
     
     /**
@@ -315,12 +327,16 @@ class ImageProcessor {
     
     /**
      * Get image dimensions
-     * @returns {Object} Width and height
+     * @returns {Object} Width, height, and offsets
      */
     getDimensions() {
         return {
-            width: this.canvas ? this.canvas.width : 0,
-            height: this.canvas ? this.canvas.height : 0
+            width: this.imageWidth || 0,
+            height: this.imageHeight || 0,
+            offsetX: this.imageOffsetX || 0,
+            offsetY: this.imageOffsetY || 0,
+            canvasWidth: this.canvas ? this.canvas.width : 0,
+            canvasHeight: this.canvas ? this.canvas.height : 0
         };
     }
     
